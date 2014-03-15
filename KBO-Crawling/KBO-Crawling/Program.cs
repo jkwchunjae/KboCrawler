@@ -13,6 +13,7 @@ namespace KBO_Crawling
       {
          if ((args.Count() >= 1 && args[0] == "cmd") || (args.Count() < 5))
          {
+            Console.WriteLine("args : Host Port Database UserId Password Range BeginDate EndDate");
             Console.WriteLine("args : Host Port Database UserId Password [Date...]");
             Console.WriteLine("Date : Relative -x");
             Console.WriteLine("       Absolute yyyymmdd");
@@ -30,7 +31,17 @@ namespace KBO_Crawling
                         };
 
          var crawler = new Crawler();
-         if (args.Count() > 5)
+         if (args.Count() == 8 && args[5]=="Range")
+         {
+            var beginDate = int.Parse(args[6]).ToDateTime();
+            var endDate = int.Parse(args[7]).ToDateTime();
+            for (var date = beginDate; date != endDate.AddDays(1); date = date.AddDays(1))
+            {
+               var isSuccess = crawler.Start(DbMng, date);
+               LogHelper.Log("{0} : {1}", date.ToInt(), (isSuccess ? "Success" : "Fail"));
+            }
+         }
+         else if (args.Count() > 5)
          {
             foreach (var arg in args.Where((e, i) => i >= 5))
             {
@@ -40,7 +51,7 @@ namespace KBO_Crawling
                   var date = Utils.GetDate(diff);
                   if (date.ToInt() == 19890201) continue;
                   var isSuccess = crawler.Start(DbMng, date);
-                  LogHelper.Log("{0}({1}) : {2}", arg, date.ToInt(), (isSuccess?"Success":"Fail"));
+                  LogHelper.Log("{0}({1}) : {2}", arg, date.ToInt(), (isSuccess ? "Success" : "Fail"));
                }
                else
                {
