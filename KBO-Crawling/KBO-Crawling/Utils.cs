@@ -21,6 +21,7 @@ namespace KBO_Crawling
          engNameDic.Add("SK", "SK");
          engNameDic.Add("NC", "NC");
          engNameDic.Add("한화", "HH");
+         engNameDic.Add("현대", "NX");
       }
 
       public static DateTime ToDateTime(this int date)
