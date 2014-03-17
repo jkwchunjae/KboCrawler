@@ -68,6 +68,9 @@ namespace KBO_Crawling
                   var date = DateTime.Now;
                   var isSuccess = crawler.Start(DbMng, date);
                   LogHelper.Log("{0} : {1}", date.ToInt(), (isSuccess ? "Success" : "Fail"));
+                  date = DateTime.Now.AddDays(-1);
+                  isSuccess = crawler.Start(DbMng, date);
+                  LogHelper.Log("{0} : {1}", date.ToInt(), (isSuccess ? "Success" : "Fail"));
                }
                catch (Exception ex)
                {
