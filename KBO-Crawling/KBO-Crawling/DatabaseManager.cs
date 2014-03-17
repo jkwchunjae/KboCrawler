@@ -41,9 +41,11 @@ namespace KBO_Crawling
          bool result = false;
          try
          {
+            #region SQL Query 만들기
             var query = string.Empty;
-            if (ExistDate(date))
+            if (ExistDate(date)) //DB 해당 날짜가 존재하는지 체크
             {
+               #region Update SQL Query 만들기
                //update
                var str = string.Empty;
                foreach (var team in GbDic)
@@ -52,9 +54,11 @@ namespace KBO_Crawling
                }
                //query = "update gamebehind set SS=@SS, SK=@SK, LT=@LT, KA=@KA, DS=@DS, LG=@LG, HH=@HH, NX=@NX, NC=@NC where datee=@date;";
                query = "update gamebehind set " + str.Substring(0, str.Length - 2) + " where datee=@date;";
+               #endregion
             }
             else
             {
+               #region Insert SQL Query 만들기
                //insert
                var str = string.Empty;
                foreach (var team in GbDic)
@@ -63,7 +67,11 @@ namespace KBO_Crawling
                }
                //query = "insert into gamebehind (datee, SS, SK, LT, KA, DS, LG, HH, NX, NC) values(@date, @SS, @SK, @LT, @KA, @DS, @LG, @HH, @NX, @NC);";
                query = "insert into gamebehind (datee" + str.Replace("@", "") + ") values(@date" + str + ");";
+               #endregion
             }
+            #endregion
+
+            #region Query 실행
             using (var conn = GetDbConnection())
             {
                var cmd = new MySqlCommand(query, conn);
@@ -77,6 +85,7 @@ namespace KBO_Crawling
                var affectedRow = cmd.ExecuteNonQuery();
                result = (affectedRow == 1);
             }
+            #endregion
          }
          catch (Exception ex)
          {
@@ -89,12 +98,15 @@ namespace KBO_Crawling
       {
          try
          {
-            var query = "select count(1) as cnt from gamebehind where datee = ?;";
+            #region SQL Query 만들기
+            var query = "select count(1) as cnt from gamebehind where datee = @date;";
+            #endregion
 
+            #region Query 실행
             using (var conn = GetDbConnection())
             {
                var cmd = new MySqlCommand(query, conn);
-               cmd.Parameters.AddWithValue("param1", date.ToString("yyyy-MM-dd"));
+               cmd.Parameters.AddWithValue("@date", date.ToString("yyyy-MM-dd"));
                var reader = cmd.ExecuteReader();
                if (reader.Read())
                {
@@ -102,6 +114,7 @@ namespace KBO_Crawling
                   return !(cnt == 0);
                }
             }
+            #endregion
          }
          catch (Exception ex)
          {

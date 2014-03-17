@@ -34,27 +34,34 @@ namespace KBO_Crawling
          return date.Year * 10000 + date.Month * 100 + date.Day;
       }
 
-      public static DateTime GetDate(int diff)
+      public static DateTime GetDate(int input)
       {
+         /*
+          * 사용자 인풋에 따라 값을 다르게 처리.
+          * 0 : 오늘
+          * 음수 : 오늘 - 인풋 (상대참조)
+          * 1 ~ 999 9999 : 잘못 입력된 날짜
+          * 그 이상 양수 : 날짜로 변환 (절대참조)
+          */
          var date = DateTime.Now;
-         if (diff == 0)
+         if (input == 0)
          {
             date = DateTime.Now;
          }
-         else if (diff < 0)
+         else if (input < 0)
          {
-            date = DateTime.Now.AddDays(diff);
+            date = DateTime.Now.AddDays(input);
          }
-         else if (diff < 9999999)
+         else if (input < 9999999)
          {
-            LogHelper.Log(diff + " : Fail");
+            LogHelper.Log(input + " : Fail");
             date = new DateTime(1989, 2, 1);
          }
          else
          {
             try
             {
-               date = diff.ToDateTime();
+               date = input.ToDateTime();
             }
             catch (Exception ex)
             {
