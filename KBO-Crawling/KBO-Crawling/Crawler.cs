@@ -18,20 +18,11 @@ namespace KBO_Crawling
          var html = string.Empty;
          try
          {
-            var url = string.Format("http://www.koreabaseball.com/TeamRank/TeamRank.aspx?searchDate={0}", date.ToString("yyyy-MM-dd"));
-            var webRequest = (HttpWebRequest)WebRequest.Create(url);
-            webRequest.UserAgent = "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)";
-            webRequest.CookieContainer = new CookieContainer();
-            webRequest.AllowAutoRedirect = true;
-            webRequest.Timeout = 2000;
-
-            using (var webResponse = (HttpWebResponse)webRequest.GetResponse())
-            using (var reader = new StreamReader(webResponse.GetResponseStream(), Encoding.UTF8))
+            using (var client = new WebClient())
             {
-               var rawHtml = reader.ReadToEnd();
-               var statusCode = webResponse.StatusCode;
-
-               html = rawHtml;
+               var url = string.Format("http://www.koreabaseball.com/TeamRank/TeamRank.aspx?searchDate={0}", date.ToString("yyyy-MM-dd"));
+               client.Encoding = Encoding.UTF8;
+               html = client.DownloadString(url);
             }
          }
          catch (Exception ex)
