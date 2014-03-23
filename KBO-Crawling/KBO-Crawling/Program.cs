@@ -29,9 +29,10 @@ namespace KBO_Crawling
                            , UserId = args[3]
                            , Password = args[4]
                         };
+         DbMng.MakeDbConnectionString();
 
          var crawler = new Crawler();
-         if (args.Count() == 8 && args[5]=="Range")
+         if (args.Count() == 8 && args[5].ToLower()=="range")
          {
             #region 범위로 값 읽어오기
             var beginDate = int.Parse(args[6]).ToDateTime();

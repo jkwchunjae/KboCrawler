@@ -16,76 +16,61 @@ namespace KBO_Crawling
       public string UserId { set; get; }
       public string Password { set; get; }
 
-      public MySqlConnection GetDbConnection()
-      {
-         var dbInfo = string.Format("Server={0};Port={1};Database={2};Uid={3};Pwd={4};charset=utf8;", Host, Port, Database, UserId, Password);
-         var conn = new MySqlConnection(dbInfo);
+      private string dbInfo;
 
-         try
-         {
-            conn.Open();
-         }
-         catch
-         {
-            if (conn != null)
-            {
-               conn.Close();
-            }
-            conn = null;
-         }
-         return conn;
+      public void MakeDbConnectionString()
+      {
+         dbInfo = string.Format("Server={0};Port={1};Database={2};Uid={3};Pwd={4};charset=utf8;", Host, Port, Database, UserId, Password);
       }
 
-      public bool UpdateGameBehind(DateTime date, Dictionary<string, double> GbDic)
+      public bool UpdateStanding(DateTime date, List<Standing> standing)
       {
          bool result = false;
          try
          {
-            #region SQL Query 만들기
-            var query = string.Empty;
-            if (ExistDate(date)) //DB 해당 날짜가 존재하는지 체크
+            foreach (var teamInfo in standing)
             {
-               #region Update SQL Query 만들기
-               //update
-               var str = string.Empty;
-               foreach (var team in GbDic)
+               #region SQL Query 만들기
+               var query = string.Empty;
+               if (ExistDate(date, teamInfo.TeamName)) //DB 해당 날짜가 존재하는지 체크
                {
-                  str += string.Format("{0}=@{1}, ", team.Key, team.Key);
+                  #region Update SQL Query 만들기
+                  query = "update standing set rank=@rank, game=@game, win=@win, lose=@lose, draw=@draw, PCT=@PCT, GB=@GB, STRK=@STRK "
+                        + " where datee = @date and teamIndex = (select teamIndex from team where teamNameKOR = @teamName);";
+                  #endregion
                }
-               //query = "update gamebehind set SS=@SS, SK=@SK, LT=@LT, KA=@KA, DS=@DS, LG=@LG, HH=@HH, NX=@NX, NC=@NC where datee=@date;";
-               query = "update gamebehind set " + str.Substring(0, str.Length - 2) + " where datee=@date;";
+               else
+               {
+                  #region Insert SQL Query 만들기
+                  query = "insert into standing (datee, rank, teamIndex, game, win, lose, draw, PCT, GB, STRK) "
+                        + " values (@date, @rank, (select teamIndex from team where teamNameKOR = @teamName), @game, @win, @lose, @draw, @PCT, @GB, @STRK) ;";
+                  #endregion
+               }
+               #endregion
+
+               #region Query 실행
+               using (var conn = new MySqlConnection(dbInfo))
+               {
+                  conn.Open();
+                  var cmd = new MySqlCommand(query, conn);
+
+                  cmd.Parameters.AddWithValue("@date", date.ToString("yyyy-MM-dd"));
+                  cmd.Parameters.AddWithValue("@teamName", teamInfo.TeamName);
+                  cmd.Parameters.AddWithValue("@rank", teamInfo.Rank);
+                  cmd.Parameters.AddWithValue("@game", teamInfo.Game);
+                  cmd.Parameters.AddWithValue("@win", teamInfo.Win);
+                  cmd.Parameters.AddWithValue("@lose", teamInfo.Lose);
+                  cmd.Parameters.AddWithValue("@draw", teamInfo.Draw);
+                  cmd.Parameters.AddWithValue("@PCT", teamInfo.PCT);
+                  cmd.Parameters.AddWithValue("@GB", teamInfo.GB);
+                  cmd.Parameters.AddWithValue("@STRK", teamInfo.STRK);
+
+
+                  var affectedRow = cmd.ExecuteNonQuery();
+                  result = (affectedRow == 1);
+               }
                #endregion
             }
-            else
-            {
-               #region Insert SQL Query 만들기
-               //insert
-               var str = string.Empty;
-               foreach (var team in GbDic)
-               {
-                  str += string.Format(", @{0}", team.Key);
-               }
-               //query = "insert into gamebehind (datee, SS, SK, LT, KA, DS, LG, HH, NX, NC) values(@date, @SS, @SK, @LT, @KA, @DS, @LG, @HH, @NX, @NC);";
-               query = "insert into gamebehind (datee" + str.Replace("@", "") + ") values(@date" + str + ");";
-               #endregion
-            }
-            #endregion
-
-            #region Query 실행
-            using (var conn = GetDbConnection())
-            {
-               var cmd = new MySqlCommand(query, conn);
-               cmd.Parameters.AddWithValue("@date", date.ToString("yyyy-MM-dd"));
-               foreach (var team in GbDic)
-               {
-                  cmd.Parameters.AddWithValue("@" + team.Key, team.Value);
-               }
-               //cmd.Parameters.AddWithValue("@SS", GbDic["SS"]);
-
-               var affectedRow = cmd.ExecuteNonQuery();
-               result = (affectedRow == 1);
-            }
-            #endregion
          }
          catch (Exception ex)
          {
@@ -94,19 +79,22 @@ namespace KBO_Crawling
          return result;
       }
 
-      private bool ExistDate(DateTime date)
+      private bool ExistDate(DateTime date, string teamName)
       {
          try
          {
             #region SQL Query 만들기
-            var query = "select count(1) as cnt from gamebehind where datee = @date;";
+            var query = "select count(1) as cnt from standing "
+                     + " where datee = @date and teamIndex = (select teamIndex from team where teamNameKOR = @teamName);";
             #endregion
 
             #region Query 실행
-            using (var conn = GetDbConnection())
+            using (var conn = new MySqlConnection(dbInfo))
             {
+               conn.Open();
                var cmd = new MySqlCommand(query, conn);
                cmd.Parameters.AddWithValue("@date", date.ToString("yyyy-MM-dd"));
+               cmd.Parameters.AddWithValue("@teamName", teamName);
                var reader = cmd.ExecuteReader();
                if (reader.Read())
                {
