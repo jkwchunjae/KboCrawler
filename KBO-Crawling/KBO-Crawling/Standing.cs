@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KBO_Crawling.Database;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,116 +7,61 @@ using System.Threading.Tasks;
 
 namespace KBO_Crawling
 {
-    class Standing
-    {
-        public DateTime Date;
-        public int Rank;
-        public string TeamName;
-        public int TeamIndex;
-        public int Game;
-        public int Win;
-        public int Lose;
-        public int Draw;
-        public double PCT;
-        public double GB;
-        public string STRK;
-        public string L10;
+	[Table]
+	class Standing
+	{
+		[Key]
+		[Date]
+		public DateTime Date; // 날짜
+		[Key]
+		[Varchar(10)]
+		public string TeamName; // 팀 이름
+		public int Rank; // 순위
+		//public int TeamIndex; // 팀 번호
+		public int Game; // 경기 수
+		public int Win; // 승 수
+		public int Lose; // 패 수
+		public int Draw; // 무승부 수
+		public double PCT; // 승률
+		public double GB; // 승차
+		[Varchar(20)]
+		public string STRK; // 연속
+		[Varchar(20)]
+		public string L10; // 최근10경기
 
-        public bool WriteInfo(string[] teamArr)
-        {
-            int tmp;
-            double dbl;
+		public bool WriteInfo(string[] teamArr)
+		{
+			// 순위
+			if (!int.TryParse(teamArr[0], out Rank)) return false;
 
-            #region 순위
-            if (int.TryParse(teamArr[0], out tmp))
-            {
-                Rank = tmp;
-            }
-            else
-            {
-                return false;
-            }
-            #endregion
+			// 팀 이름
+			TeamName = teamArr[1];
 
-            #region 구단 이름
-            TeamName = teamArr[1];
-            #endregion
+			// 경기 수
+			if (!int.TryParse(teamArr[2], out Game)) return false;
 
-            #region 경기 수
-            if (int.TryParse(teamArr[2], out tmp))
-            {
-                Game = tmp;
-            }
-            else
-            {
-                return false;
-            }
-            #endregion
+			// 승
+			if (!int.TryParse(teamArr[3], out Win)) return false;
 
-            #region 승
-            if (int.TryParse(teamArr[3], out tmp))
-            {
-                Win = tmp;
-            }
-            else
-            {
-                return false;
-            }
-            #endregion
+			// 패
+			if (!int.TryParse(teamArr[4], out Lose)) return false;
 
-            #region 패
-            if (int.TryParse(teamArr[4], out tmp))
-            {
-                Lose = tmp;
-            }
-            else
-            {
-                return false;
-            }
-            #endregion
+			// 무
+			if (!int.TryParse(teamArr[5], out Draw)) return false;
 
-            #region 무
-            if (int.TryParse(teamArr[5], out tmp))
-            {
-                Draw = tmp;
-            }
-            else
-            {
-                return false;
-            }
-            #endregion
+			// 승률
+			if (!double.TryParse(teamArr[6], out PCT)) return false;
 
-            #region 승률
-            if (double.TryParse(teamArr[6], out dbl))
-            {
-                PCT = dbl;
-            }
-            else
-            {
-                return false;
-            }
-            #endregion
+			// 승차
+			if (!double.TryParse(teamArr[7], out GB)) return false;
 
-            #region 승차
-            if (double.TryParse(teamArr[7], out dbl))
-            {
-                GB = dbl;
-            }
-            else
-            {
-                return false;
-            }
-            #endregion
+			// 연속
+			STRK = teamArr[8];
 
-            #region 연속
-            STRK = teamArr[8];
-            #endregion
+			// 최근10경기
+			L10 = "";
 
-            #region 최근10경기
-            L10 = "";
-            #endregion
-
-            return true;
-        }
-    }
+			return true;
+		}
+	}
 }

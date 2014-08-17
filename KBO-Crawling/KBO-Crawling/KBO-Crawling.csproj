@@ -68,6 +68,9 @@
   <ItemGroup>
     <Compile Include="Crawler.cs" />
     <Compile Include="DatabaseManager.cs" />
+    <Compile Include="Database\Attribute.cs" />
+    <Compile Include="Database\DatabaseHelper.cs" />
+    <Compile Include="Database\Model.cs" />
     <Compile Include="LogHelper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
